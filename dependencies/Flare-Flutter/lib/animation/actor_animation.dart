@@ -506,6 +506,7 @@ class ActorAnimationInstance
 	double get maxTime => _max;
 	double get time => _time;
     bool get isOver => _time >= _max;
+	ActorAnimation get actorAnimation => _animation;
 
     void reset()
     {

@@ -14,19 +14,19 @@ enum DotState
 
 class DotsAnimationInstance extends ActorAnimationInstance
 {
-	double _mix = 0.0;
+	double mix = 0.0;
 	double mixSpeed = 0.0;
 
 	DotsAnimationInstance(FlutterActor actor, ActorAnimation animation) : super(actor, animation);
 
 	List<AnimationEventArgs> advance(double seconds)
 	{
-		_mix = (_mix + mixSpeed * seconds).clamp(0.0, 1.0);
+		mix = (mix + mixSpeed * seconds).clamp(0.0, 1.0);
 
 		List<AnimationEventArgs> events = super.advance(seconds);
-		if(_mix > 0.0)
+		if(mix > 0.0)
 		{
-			apply(_mix);
+			apply(mix);
 		}
 		else
 		{
@@ -55,30 +55,40 @@ class DotsController implements FlareController
 		{
 			return;
 		}
-		_state = state;
 
 		for(DotsAnimationInstance instance in _all)
 		{
+			if(instance == _thinkingNoSpin)
+			{
+				continue;
+			}
 			instance.mixSpeed = -MixSpeed;
 		}
-		switch(_state)
+		switch(state)
 		{
 			case DotState.Listening:
 				_listening.mixSpeed = MixSpeed;
+				_thinkingNoSpin.loop = true;
+				_thinkingNoSpin.mixSpeed = -MixSpeed;
 				break;
 			case DotState.Thinking:
 				_spin.mixSpeed = MixSpeed;
 				_thinkingNoSpin.mixSpeed = MixSpeed;
+				_thinkingNoSpin.loop = true;
 				break;
 			case DotState.UserSpeaking:
 				_listening.mixSpeed = MixSpeed;
 				_userSpeaks.mixSpeed = MixSpeed;
+				_thinkingNoSpin.loop = true;
+				_thinkingNoSpin.mixSpeed = -MixSpeed;
 				break;
 			case DotState.Replying:
 				_spin.mixSpeed = MixSpeed;
 				_replyingNoSpin.mixSpeed = MixSpeed;
+				_thinkingNoSpin.loop = false;
 				break;
 		}
+		_state = state;
 	}
 
 	DotsAnimationInstance instanceAnimation(FlutterActor actor, String name)
@@ -104,6 +114,10 @@ class DotsController implements FlareController
 
 	void advance(FlutterActor actor, double elapsed)
 	{
+		if(_thinkingNoSpin.isOver && _state != DotState.Thinking)
+		{
+			_thinkingNoSpin.mix = -MixSpeed;
+		}
 		for(DotsAnimationInstance instance in _all)
 		{
 			instance.advance(elapsed);
