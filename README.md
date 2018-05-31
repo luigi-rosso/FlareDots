@@ -1,4 +1,4 @@
-# dots
+# Flare Dots
 
 Example use of Flare to clone some interative Google Dots.
 
